@@ -15,7 +15,6 @@ int main(int argc, char* argv[])
 	std::ifstream inputFile(argv[1]);
 	std::string lineOfText;
 	float prevTransactionPrice;
-    std::vector<Order> pendingOrders;
 
     // Read the first line to get the previous transaction price
     if (getline(inputFile, lineOfText)) 
@@ -69,6 +68,8 @@ int main(int argc, char* argv[])
             pendingOrders.erase(std::remove_if(pendingOrders.begin(), pendingOrders.end(),
                 [&matchedOrder](const Order& o) { return o.getOrderID() == matchedOrder.getOrderID(); }),
                 pendingOrders.end());
+
+     
         }
 
         // Recursively try and match the residual order
