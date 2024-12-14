@@ -2,10 +2,53 @@
 //
 
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+#include "Order.h"
+#include <vector>
 
-int main()
+int main(int argc, char* argv[])
 {
-    std::cout << "Hello World!\n";
+	std::ifstream inputFile(argv[1]);
+	std::string lineOfText;
+	float prevTransactionPrice;
+    std::vector<Order> orders;
+
+    // Read the first line to get the previous transaction price
+    if (getline(inputFile, lineOfText)) 
+    {
+        std::istringstream iss(lineOfText);
+        iss >> prevTransactionPrice;
+    }
+
+    // Process the rest of the lines for orders
+    while (getline(inputFile, lineOfText)) 
+    {
+        std::istringstream iss(lineOfText);
+
+        // Declare Variables
+        std::string orderID;
+        char orderType;  // B or S
+        int quantity;
+        float limitPrice = 0.0f;
+        bool isMarketOrder = false;
+
+        // Parse the fields in the line
+        if (iss >> orderID >> orderType >> quantity) 
+        {
+            if (!(iss >> limitPrice)) 
+            {
+                // If no limit price is provided, it's a market order
+                isMarketOrder = true;
+            }
+        }
+
+        Order anOrder(orderID, orderType, quantity, limitPrice, isMarketOrder, std::chrono::system_clock::now());
+        orders.push_back(anOrder);
+    }
+
+    inputFile.close();
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

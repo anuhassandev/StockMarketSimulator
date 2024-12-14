@@ -2,7 +2,7 @@
 #include <iostream>
 
 // Constructor
-Order::Order(std::string id, char type, int quantity, float limitPrice, bool isMarketOrder, std::time_t toa)
+Order::Order(std::string id, char type, int quantity, float limitPrice, bool isMarketOrder, std::chrono::system_clock::time_point toa)
     : orderID(id), type(type), quantity(quantity), limitPrice(limitPrice), _isMarketOrder(isMarketOrder), timeOfArrival(toa), state(OrderState::Pending), priority(10000) {
 }
 
@@ -12,7 +12,7 @@ char Order::getType() const { return type; }
 int Order::getQuantity() const { return quantity; }
 float Order::getLimitPrice() const { return limitPrice; }
 bool Order::isMarketOrder() const { return _isMarketOrder; }
-std::time_t Order::getTimeOfArrival() const { return timeOfArrival; }
+std::chrono::system_clock::time_point Order::getTimeOfArrival() const { return timeOfArrival; }
 OrderState Order::getState() const { return state; }
 
 // Setters

@@ -2,8 +2,8 @@
 #define ORDER_H
 
 #include <string>
-#include <ctime>
 #include "OrderState.h"
+#include <chrono>
 
 class Order
 {
@@ -13,12 +13,12 @@ private:
 	int quantity;
 	float limitPrice;
 	bool _isMarketOrder;
-	std::time_t timeOfArrival;
+	std::chrono::system_clock::time_point timeOfArrival;
 	OrderState state;
 	int priority;
 
 public:
-	Order(std::string id, char type, int quantity, float limitPrice, bool isMarketOrder, std::time_t toa);
+	Order(std::string id, char type, int quantity, float limitPrice, bool isMarketOrder, std::chrono::system_clock::time_point toa);
 
 	// Getters & Setters
 	std::string getOrderID() const;
@@ -26,7 +26,7 @@ public:
 	int getQuantity() const;
 	float getLimitPrice() const;
 	bool isMarketOrder() const;
-	std::time_t getTimeOfArrival() const;
+	std::chrono::system_clock::time_point getTimeOfArrival() const;
 	OrderState getState() const;
 
 	void setState(OrderState newState);
