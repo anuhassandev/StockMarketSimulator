@@ -19,6 +19,7 @@ private:
 
 public:
 	Order(std::string id, char type, int quantity, float limitPrice, bool isMarketOrder, std::chrono::system_clock::time_point toa);
+	Order();
 
 	// Getters & Setters
 	std::string getOrderID() const;
@@ -28,6 +29,7 @@ public:
 	bool isMarketOrder() const;
 	std::chrono::system_clock::time_point getTimeOfArrival() const;
 	OrderState getState() const;
+	int getPriority() const;
 
 	void setState(OrderState newState);
 	void setQuantity(int newQuantity);
