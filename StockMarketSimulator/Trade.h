@@ -12,6 +12,7 @@ private:
 
 public:
     Trade(const Order buyingOrder, const Order sellingOrder, int tradedQuantity, float executionPrice);
+    Trade();
 
     float getExecutionPrice() const;
 };
