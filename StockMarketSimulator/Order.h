@@ -10,7 +10,7 @@ class Order
 private:
 	std::string orderID;
 	char type; // 'B' for buy, 'S' for sell
-	int quantity;
+	unsigned int quantity;
 	float limitPrice;
 	bool _isMarketOrder;
 	std::chrono::system_clock::time_point timeOfArrival;
@@ -34,6 +34,9 @@ public:
 	void setState(OrderState newState);
 	void setQuantity(int newQuantity);
 	void calculatePriority(float lastTradePrice);
+
+	bool operator == (const Order& other) const;
+
 };
 
 #endif

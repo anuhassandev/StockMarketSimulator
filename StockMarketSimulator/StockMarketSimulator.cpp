@@ -5,103 +5,137 @@
 #include <fstream>
 #include <string>
 #include <sstream>
-#include "Order.h"
 #include <vector>
-#include "Trade.h"
+#include <iomanip>
+#include "Order.h"
 #include "Match.h"
+#include "Display.h"
 
 int main(int argc, char* argv[])
 {
-	std::ifstream inputFile(argv[1]);
-	std::string lineOfText;
-	float prevTransactionPrice;
+    // Ensure command-line argument for input file
+    if (argc < 2)
+    {
+        std::cerr << "Error: Missing input file argument.\n";
+        return 1;
+    }
 
-    // Read the first line to get the previous transaction price
-    if (getline(inputFile, lineOfText)) 
+    std::ifstream inputFile(argv[1]);
+    if (!inputFile)
+    {
+        std::cerr << "Error: Unable to open file: " << argv[1] << "\n";
+        return 1;
+    }
+
+    std::string lineOfText;
+    float prevTransactionPrice;
+    std::vector<Order> pendingOrders;   // Holds all orders not yet executed
+    std::vector<Order> previousOrders;  // Keeps track of the previous state of orders for incremental updates
+
+
+    // Step 1: Read the first line for the previous transaction price
+    if (getline(inputFile, lineOfText))
     {
         std::istringstream iss(lineOfText);
         iss >> prevTransactionPrice;
     }
 
-    // Process the rest of the lines for orders
-    while (getline(inputFile, lineOfText)) 
+    // Step 2: Process each order line in the file
+    while (getline(inputFile, lineOfText))
     {
         std::istringstream iss(lineOfText);
-
-        // Declare Variables
         std::string orderID;
         char orderType;  // B or S
         int quantity;
         float limitPrice = 0.0f;
         bool isMarketOrder = false;
 
-        // Parse the fields in the line
-        if (iss >> orderID >> orderType >> quantity) 
+        // Parse order fields
+        if (iss >> orderID >> orderType >> quantity)
         {
-            if (!(iss >> limitPrice)) 
+            if (!(iss >> limitPrice))
+                isMarketOrder = true; // It's a market order if no limit price exists
+        }
+
+        // Step 3: Create a new order
+        Order newOrder(orderID, orderType, quantity, limitPrice, isMarketOrder, std::chrono::system_clock::now());
+
+        // Step 4: Try to match the new order with existing pending orders
+        auto matchResult = matchOrder(newOrder, pendingOrders, prevTransactionPrice);
+
+        // Step 5: Handle trade execution and update of lists
+
+        while (matchResult.has_value()) // If we have found a match
+        {
+            auto [matchedOrder, quantityToTrade] = matchResult.value(); 
+
+            //// Display the trade
+            //std::cout << "Trade executed: " << quantityToTrade << " shares at price "
+            //    << std::fixed << std::setprecision(2) << prevTransactionPrice << "\n";
+
+            // Set the OrderState to matched
+            matchedOrder.setState(OrderState::Matched);
+            newOrder.setState(OrderState::Matched);
+
+            // Update the last trading price
+            if (!matchedOrder.isMarketOrder() && !newOrder.isMarketOrder())
             {
-                // If no limit price is provided, it's a market order
-                isMarketOrder = true;
-            }
-        }
-
-        Order anOrder(orderID, orderType, quantity, limitPrice, isMarketOrder, std::chrono::system_clock::now());
-        pendingOrders.push_back(anOrder);
-
-        auto matchResult = matchOrder(anOrder, pendingOrders, prevTransactionPrice);
-
-        if (matchResult.has_value()) {
-            auto [matchedOrder, quantityToTrade] = matchResult.value();
-
-            // Update order quantities and handle residuals
-            if (anOrder.getQuantity() > quantityToTrade) {
-                anOrder.setQuantity(anOrder.getQuantity() - quantityToTrade);
-                pendingOrders.push_back(anOrder); // Add remaining part back to pending orders
+                prevTransactionPrice = (matchedOrder.getTimeOfArrival() < newOrder.getTimeOfArrival()) ? matchedOrder.getLimitPrice() : newOrder.getLimitPrice();
             }
 
-            if (matchedOrder.getQuantity() > quantityToTrade) {
+            else if (!matchedOrder.isMarketOrder())
+            {
+                prevTransactionPrice = matchedOrder.getLimitPrice();
+            }
+
+            else if (!newOrder.isMarketOrder())
+            {
+                prevTransactionPrice = newOrder.getLimitPrice();
+            }
+
+            // Set matched orders to executed and remove them from the pending list
+            matchedOrder.setState(OrderState::Executed);
+            newOrder.setState(OrderState::Executed);
+            pendingOrders.erase(std::remove(pendingOrders.begin(), pendingOrders.end(), matchedOrder), pendingOrders.end());
+            pendingOrders.erase(std::remove(pendingOrders.begin(), pendingOrders.end(), newOrder), pendingOrders.end());
+
+
+            // Update the remaining quantity for partially executed orders
+            if (newOrder.getQuantity() > quantityToTrade)
+            {
+                newOrder.setQuantity(newOrder.getQuantity() - quantityToTrade);
+                newOrder.setState(OrderState::Pending);
+                pendingOrders.push_back(newOrder);
+            }
+
+            if (matchedOrder.getQuantity() > quantityToTrade)
+            {
                 matchedOrder.setQuantity(matchedOrder.getQuantity() - quantityToTrade);
-                pendingOrders.push_back(matchedOrder); // Add remaining part back to pending orders
+                matchedOrder.setState(OrderState::Pending);
+                pendingOrders.push_back(matchedOrder);
             }
 
-            // Remove fully executed matched order
-            pendingOrders.erase(std::remove_if(pendingOrders.begin(), pendingOrders.end(),
-                [&matchedOrder](const Order& o) { return o.getOrderID() == matchedOrder.getOrderID(); }),
-                pendingOrders.end());
-
-     
+            // Try to match the order again until there is no longer a match
+            matchResult = matchOrder(newOrder, pendingOrders, prevTransactionPrice);
         }
 
-        // Recursively try and match the residual order
-        while (anOrder.getQuantity() > 0) {
-            auto matchResult = matchOrder(anOrder, pendingOrders, prevTransactionPrice);
+        // Step 6: Add the unmatched new order to pending orders
+        pendingOrders.push_back(newOrder);
 
-            if (!matchResult.has_value()) {
-                break; // No further matches
-            }
+        // Step 7: Display incremental updates
+        displayIncrementalUpdates(pendingOrders, prevTransactionPrice, previousOrders);
 
-            auto [matchedOrder, quantityToTrade] = matchResult.value();
-
-            // Handle residuals as before
-            if (anOrder.getQuantity() > quantityToTrade) {
-                anOrder.setQuantity(anOrder.getQuantity() - quantityToTrade);
-            }
-
-            if (matchedOrder.getQuantity() > quantityToTrade) {
-                matchedOrder.setQuantity(matchedOrder.getQuantity() - quantityToTrade);
-                pendingOrders.push_back(matchedOrder); // Add remaining part back to pending orders
-            }
-
-            // Remove fully executed matched order
-            pendingOrders.erase(std::remove_if(pendingOrders.begin(), pendingOrders.end(),
-                [&matchedOrder](const Order& o) { return o.getOrderID() == matchedOrder.getOrderID(); }),
-                pendingOrders.end());
-        }
-        
+        // Step 8: Update previousOrders with the current state
+        previousOrders = pendingOrders;
     }
 
+    // Step 9: After processing all orders, display the full order book
+    //displayOrderBook(pendingOrders, prevTransactionPrice);
+
     inputFile.close();
+    return 0;
 }
+
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
 // Debug program: F5 or Debug > Start Debugging menu

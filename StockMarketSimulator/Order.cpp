@@ -41,3 +41,13 @@ void Order::calculatePriority(float lastTradePrice)
         priority = priority - limitPrice; 
     }
 }
+
+bool Order::operator == (const Order& other) const
+{
+    // Define what makes two Orders "equal"
+    return this->getOrderID() == other.getOrderID() &&
+        this->getType() == other.getType() &&
+        this->getQuantity() == other.getQuantity() &&
+        this->getLimitPrice() == other.getLimitPrice() &&
+        this->isMarketOrder() == other.isMarketOrder();
+}

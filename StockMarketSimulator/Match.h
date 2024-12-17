@@ -7,7 +7,5 @@
 #include "Trade.h"
 
 std::optional<std::pair<Order, int>> matchOrder(Order& newOrder, std::vector<Order>& pendingOrders, float prevTransactionPrice);
-std::vector<Trade> trades;
-
 #endif
 

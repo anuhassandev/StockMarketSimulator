@@ -8,6 +8,8 @@ std::optional<std::pair<Order, int>> matchOrder(Order& newOrder, std::vector<Ord
     int quantityToTrade = 0;
     Order sellingOrder;
     Order buyingOrder;
+    std::vector<Trade> trades;
+
 
     // Determine the matching criteria based on order type
     for (auto& pendingOrder : pendingOrders) {

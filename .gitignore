@@ -3,6 +3,7 @@
 *.opensdf
 *.user
 *.suo
+*.vcxproj
 *.vcxproj.user
 *.vcxproj.filters
 /.vs
