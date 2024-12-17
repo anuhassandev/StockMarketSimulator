@@ -1,3 +1,54 @@
+# Visual Studio specific
+*.sdf
+*.opensdf
+*.user
+*.suo
+*.vcxproj.user
+*.vcxproj.filters
 /.vs
-/StockMarketSimulator.sln
-/*.vcxproj*
+*.sln
+
+# Build output directories
+Debug/
+Release/
+x64/
+bin/
+obj/
+
+# Temporary files
+*.tlog
+*.idb
+*.ipdb
+*.pdb
+*.ilk
+*.log
+
+# Intermediate files
+*.o
+*.obj
+*.tmp
+*.pch
+*.res
+*.map
+*.dep
+
+# Editor or IDE specific files
+.vscode/
+.idea/
+*.code-workspace
+
+# Generated files
+*.exe
+*.dll
+*.lib
+*.exp
+*.iobj
+*.ipch
+*.tlog
+*.log
+*.manifest
+
+# Miscellaneous
+*.cache
+Thumbs.db
+.DS_Store
