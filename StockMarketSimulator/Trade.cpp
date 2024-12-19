@@ -4,5 +4,12 @@ Trade::Trade(const Order buyingOrder, const Order sellingOrder, int tradedQuanti
     : buyingOrder(buyingOrder), sellingOrder(sellingOrder), tradedQuantity(tradedQuantity), executionPrice(executionPrice) {
 }
 
-// Getter for execution price
+Trade::Trade()
+    : buyingOrder(), sellingOrder(), tradedQuantity(0), executionPrice(0.0) {
+}
+
+// Getters
+Order Trade::getBuyingOrder() const { return buyingOrder; }
+Order Trade::getSellingOrder() const { return sellingOrder; }
+int Trade::getTradedQuantity() const { return tradedQuantity; }
 float Trade::getExecutionPrice() const { return executionPrice; }
