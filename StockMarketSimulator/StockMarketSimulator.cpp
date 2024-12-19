@@ -31,6 +31,7 @@ int main(int argc, char* argv[])
     float prevTransactionPrice;
     std::vector<Order> pendingOrders;   // Holds all orders not yet executed
     std::vector<Order> previousOrders;  // Keeps track of the previous state of orders for incremental updates
+    std::vector<Trade> executedTrades;
 
 
     // Step 1: Read the first line for the previous transaction price
@@ -68,10 +69,6 @@ int main(int argc, char* argv[])
         while (matchResult.has_value()) // If we have found a match
         {
             auto [matchedOrder, quantityToTrade] = matchResult.value(); 
-
-            //// Display the trade
-            //std::cout << "Trade executed: " << quantityToTrade << " shares at price "
-            //    << std::fixed << std::setprecision(2) << prevTransactionPrice << "\n";
 
             // Set the OrderState to matched
             matchedOrder.setState(OrderState::Matched);
@@ -117,20 +114,29 @@ int main(int argc, char* argv[])
 
             // Try to match the order again until there is no longer a match
             matchResult = matchOrder(newOrder, pendingOrders, prevTransactionPrice);
+
+            // Deal with trade execution
+            Trade trade = (newOrder.getType() == 'B') ? Trade(newOrder, matchedOrder, quantityToTrade, prevTransactionPrice) : Trade(matchedOrder, newOrder, quantityToTrade, prevTransactionPrice);
+            executedTrades.push_back(trade);
+
+
+
+
         }
 
         // Step 6: Add the unmatched new order to pending orders
         pendingOrders.push_back(newOrder);
 
+        // Output the unmatched order to the file
+        outputPartiallyExecutedOrders(newOrder);
+
+
         // Step 7: Display incremental updates
-        displayIncrementalUpdates(pendingOrders, prevTransactionPrice, previousOrders);
+        displayIncrementalUpdates(pendingOrders, prevTransactionPrice, previousOrders, executedTrades);
 
         // Step 8: Update previousOrders with the current state
         previousOrders = pendingOrders;
     }
-
-    // Step 9: After processing all orders, display the full order book
-    //displayOrderBook(pendingOrders, prevTransactionPrice);
 
     inputFile.close();
     return 0;

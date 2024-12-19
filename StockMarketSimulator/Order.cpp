@@ -26,22 +26,6 @@ void Order::setState(OrderState newState) { state = newState; }
 void Order::setQuantity(int newQuantity) { quantity = newQuantity; }
 
 
-void Order::calculatePriority(float lastTradePrice) 
-{
-    if (type == 'B')
-    {
-        // larger the limit price, larger the priority
-        int intLimitPrice = static_cast<int>(limitPrice * 100.0);
-        priority = priority + limitPrice;
-    }
-    else
-    {
-        // lower limit price = higher priority
-        int intLimitPrice = static_cast<int>(limitPrice * 100.0);
-        priority = priority - limitPrice; 
-    }
-}
-
 bool Order::operator == (const Order& other) const
 {
     // Define what makes two Orders "equal"

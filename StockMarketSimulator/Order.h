@@ -33,7 +33,6 @@ public:
 
 	void setState(OrderState newState);
 	void setQuantity(int newQuantity);
-	void calculatePriority(float lastTradePrice);
 
 	bool operator == (const Order& other) const;
 

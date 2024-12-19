@@ -5,8 +5,9 @@
 #include <algorithm>
 #include "Order.h" 
 #include <sstream>
+#include <fstream>
 
-void displayIncrementalUpdates(const std::vector<Order>& pendingOrders, float& lastTradedPrice, std::vector<Order>& previousOrders)
+void displayIncrementalUpdates(const std::vector<Order>& pendingOrders, float& lastTradedPrice, std::vector<Order>& previousOrders, std::vector<Trade> executedTrades)
 {
     static bool firstCall = true;
     std::vector<Order> buyOrders;
@@ -116,9 +117,41 @@ void displayIncrementalUpdates(const std::vector<Order>& pendingOrders, float& l
         }
     }
 
+    // Display executed trades (if any)
+    if (!executedTrades.empty()) {
+        std::ofstream outputFile;
+        outputFile.open("txtfiles/output.txt", std::ios::out);
+
+        std::cout << "\nExecuted Trades:\n";
+        for (const auto& trade : executedTrades) {
+
+            std::cout << "Order " << trade.getBuyingOrder().getOrderID() << " purchased "
+                << trade.getTradedQuantity() << " shares at price " << trade.getExecutionPrice() << "\n";
+
+            outputFile << "order " << trade.getBuyingOrder().getOrderID() << " " << trade.getTradedQuantity() << " shares purchased at price " << trade.getExecutionPrice() << std::endl;
+
+            std::cout << "Order " << trade.getSellingOrder().getOrderID() << " sold "
+                << trade.getTradedQuantity() << " shares at price " << trade.getExecutionPrice() << "\n";
+
+            outputFile << "order " << trade.getSellingOrder().getOrderID() << " " << trade.getTradedQuantity() << " shares sold at price " << trade.getExecutionPrice() << std::endl;
+        }
+        
+        outputFile.close();
+
+        std::cout << "\n";
+    }
+
     // Update previousOrders for future comparison
     previousOrders = pendingOrders;
 }
 
+void outputPartiallyExecutedOrders(Order order)
+{
+    std::ofstream outputFile;
+    outputFile.open("txtfiles/output.txt", std::ios::out);
 
+    outputFile << "order " << order.getOrderID() << " " << order.getQuantity() << " shares unexecuted\n";
 
+    outputFile.close();
+
+}
