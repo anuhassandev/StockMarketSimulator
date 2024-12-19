@@ -119,9 +119,6 @@ int main(int argc, char* argv[])
             Trade trade = (newOrder.getType() == 'B') ? Trade(newOrder, matchedOrder, quantityToTrade, prevTransactionPrice) : Trade(matchedOrder, newOrder, quantityToTrade, prevTransactionPrice);
             executedTrades.push_back(trade);
 
-
-
-
         }
 
         // Step 6: Add the unmatched new order to pending orders
